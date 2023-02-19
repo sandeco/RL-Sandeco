@@ -72,7 +72,11 @@ class TicTacToeEnvironment:
 
     # Retornar o estado atual do jogo (o tabuleiro)
     def get_state(self):
-        return self.board
+
+        if self.ended:
+            self.reset()
+
+        return str(self.board.reshape(self.BOARD_ROWS * self.BOARD_COLS))
 
     def get_reward(self):
         if self.winner == self.X:

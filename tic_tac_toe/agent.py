@@ -22,9 +22,11 @@ class TicTacToeAgent:
         self.q_table[(state, action)] = old_value + self.alpha * (value - old_value)
 
     # Escolher uma ação (com exploração / explotação)
-    def choose_action(self, state, possible_actions):
+    def choose_action(self, env):
 
         estrategy = np.random.uniform()
+
+        possible_actions = env.get_possible_actions()
 
         if estrategy < self.epsilon:
             # Exploração: escolhe uma ação aleatória
@@ -32,16 +34,15 @@ class TicTacToeAgent:
         else:
             # Explotação: escolhe a melhor ação (com base nos valores Q)
             #q_values = [self.get_q_value(state, action) for action in possible_actions]
+            max_q, q_values = self.calculate_q_value(env)
 
-            q_values = []
-            for action in possible_actions:
-                value = self.get_q_value(state, action)
-                q_values.append(value)
-
-            max_q = max(q_values)
             if q_values.count(max_q) > 1:
+                #seleciona todas as possíveis ações com valor de Q iguais ao máximo
+                best_actions = []
+                for i in range(len(possible_actions)):
+                    if q_values[i] == max_q:
+                        best_actions.append(i)
                 # Se houver mais de uma ação com o mesmo valor máximo, escolhe aleatoriamente
-                best_actions = [i for i in range(len(possible_actions)) if q_values[i] == max_q]
                 i = random.choice(best_actions)
             else:
                 i = q_values.index(max_q)
@@ -52,32 +53,38 @@ class TicTacToeAgent:
         for episode in range(num_episodes):
             state = env.get_state()
             while not env.ended:
-                possible_actions = env.get_possible_actions()
-                action = self.choose_action(state, possible_actions)
+
+                action = self.choose_action(env)
                 env.step(action)
                 next_state = env.get_state()
                 reward = 0
-                if env.winner is not None:
 
+                if env.winner is not None:
                     reward = env.get_reward()
 
-                    max_q = self.calculate_q_value(next_state, env)
-                    new_q = reward + self.gamma * max_q
-
-                    self.update_q_value(state, action, new_q)
+                max_q, q_values = self.calculate_q_value(env)
+                new_q = reward + self.gamma * max_q
+                self.update_q_value(state, action, new_q)
 
                 state = next_state
 
-    def calculate_q_value(self, next_state, env):
+    def calculate_q_value(self, env):
+
+        state = env.get_state()
+        p_actions = env.get_possible_actions()
+
         q_values = []
-        for a in env.get_possible_actions():
-            q = self.get_q_value(next_state, a)
+        for action in p_actions:
+            q = self.get_q_value(state, action)
             q_values.append(q)
+
         if q_values:
             max_q = max(q_values)
         else:
             max_q = 0
 
-        return max_q
+        return max_q, q_values
+
+
 
 
