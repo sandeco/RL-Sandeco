@@ -1,13 +1,15 @@
-from random import random
+import random
 import numpy as np
 
 class TicTacToeAgent:
-    def __init__(self, alpha=0.5, gamma=0.9, epsilon=0.1):
+    def __init__(self, alpha=0.6, gamma=0.9, epsilon=0.1):
         self.q_table = {}
         self.alpha = alpha
         self.gamma = gamma
         self.epsilon = epsilon
-
+        self.pause_factor = 1000
+        self.pause_cont = 0
+        self.pause_next = 0
     # Retornar o valor Q para um estado e ação específicos
     def get_q_value(self, state, action):
         if (state, action) not in self.q_table:
@@ -37,9 +39,15 @@ class TicTacToeAgent:
                 i = q_values.index(max_q)
             return possible_actions[i]
 
+
     # Treinar o agente usando Q-learning
     def train(self, env, num_episodes=1000):
+
         for episode in range(num_episodes):
+
+            if env.ended:
+                env.reset()
+
             state = env.get_state()
             while not env.ended:
                 possible_actions = env.get_possible_actions()
@@ -48,8 +56,32 @@ class TicTacToeAgent:
                 next_state = env.get_state()
                 reward = 0
                 if env.winner is not None:
-                    reward = 1 if env.winner == X else -1
-                self.update_q_value(state, action, reward + self.gamma * max([self.get_q_value(next_state, a) for a in env.get_possible_actions()]))
+                    reward = 1 if env.winner == env.X else -1
+
+                q_values = [self.get_q_value(next_state, a) for a in env.get_possible_actions()]
+                if q_values:
+                    max_q = max(q_values)
+                else:
+                    max_q = 0
+
+                self.update_q_value(state, action, reward + self.gamma * max_q)
                 state = next_state
 
+        print("FIM DO TREINAMENTO")
+    def calculate_q_value(self, env):
+
+        state = env.get_state()
+        p_actions = env.get_possible_actions()
+
+        q_values = []
+        for action in p_actions:
+            q = self.get_q_value(state, action)
+            q_values.append(q)
+
+        if q_values:
+            max_q = max(q_values)
+        else:
+            max_q = 0
+
+        return max_q, q_values
 

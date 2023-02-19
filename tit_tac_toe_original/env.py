@@ -2,44 +2,42 @@ import numpy as np
 import random
 
 # Definir o jogo da velha (iic-tac-toe)
-X = 1
-O = -1
-EMPTY = 0
-BOARD_ROWS = 3
-BOARD_COLS = 3
 
 # Classe para o ambiente do jogo
 class TicTacToeEnvironment:
     def __init__(self):
-        self.board = np.zeros((BOARD_ROWS, BOARD_COLS))
-        self.current_player = X
+        self.X = 1
+        self.O = -1
+        self.EMPTY = 0
+        self.BOARD_ROWS = 3
+        self.BOARD_COLS = 3
+
+        self.board = np.zeros((self.BOARD_ROWS, self.BOARD_COLS))
+        self.current_player = self.X
         self.winner = None
         self.ended = False
 
     # Reiniciar o ambiente
     def reset(self):
-        self.board = np.zeros((BOARD_ROWS, BOARD_COLS))
-        self.current_player = X
+        self.board = np.zeros((self.BOARD_ROWS, self.BOARD_COLS))
+        self.current_player = self.X
         self.winner = None
         self.ended = False
 
     # Retornar uma lista de possíveis ações
     def get_possible_actions(self):
         actions = []
-        for i in range(BOARD_ROWS):
-            for j in range(BOARD_COLS):
-                if self.board[i, j] == EMPTY:
+        for i in range(self.BOARD_ROWS):
+            for j in range(self.BOARD_COLS):
+                if self.board[i, j] == self.EMPTY:
                     actions.append((i, j))
         return actions
 
     # Realizar uma ação (marcar uma jogada)
     def step(self, action):
-        if self.ended:
-            self.reset()
-            return
 
         i, j = action
-        if self.board[i, j] == EMPTY:
+        if self.board[i, j] == self.EMPTY:
             self.board[i, j] = self.current_player
             if self.is_winner(self.current_player):
                 self.winner = self.current_player
@@ -52,11 +50,11 @@ class TicTacToeEnvironment:
     # Verificar se o jogador atual é o vencedor
     def is_winner(self, player):
         # Verificar linhas
-        for i in range(BOARD_ROWS):
+        for i in range(self.BOARD_ROWS):
             if all(self.board[i, :] == player):
                 return True
         # Verificar colunas
-        for j in range(BOARD_COLS):
+        for j in range(self.BOARD_COLS):
             if all(self.board[:, j] == player):
                 return True
         # Verificar diagonais
@@ -67,6 +65,9 @@ class TicTacToeEnvironment:
         return False
 
     # Retornar o estado atual do jogo (o tabuleiro)
+
+
     def get_state(self):
+
         return str(self.board.reshape(self.BOARD_ROWS * self.BOARD_COLS))
 
