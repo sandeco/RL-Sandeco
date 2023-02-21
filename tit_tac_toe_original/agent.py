@@ -1,87 +1,73 @@
-import random
 import numpy as np
+import pickle
 
-class TicTacToeAgent:
-    def __init__(self, alpha=0.6, gamma=0.9, epsilon=0.1):
+BOARD_COLS = 3
+BOARD_ROWS = 3
+
+class Player:
+    def __init__(self, name, exp_rate=0.3):
+        self.name = name
+        self.states = []  # record all positions taken
+        self.alpha = 0.2
+        self.epsilon = exp_rate
+        self.gamma = 0.9
         self.q_table = {}
-        self.alpha = alpha
-        self.gamma = gamma
-        self.epsilon = epsilon
-        self.pause_factor = 1000
-        self.pause_cont = 0
-        self.pause_next = 0
-    # Retornar o valor Q para um estado e ação específicos
-    def get_q_value(self, state, action):
-        if (state, action) not in self.q_table:
-            self.q_table[(state, action)] = 0
+        self.player_symbol = 0
+        self.acc_reward = 0
 
-        return self.q_table[(state, action)]
 
-    # Atualizar o valor Q para um estado e ação específicos
-    def update_q_value(self, state, action, value):
-        old_value = self.get_q_value(state, action)
-        self.q_table[(state, action)] = old_value + self.alpha * (value - old_value)
+    def incremente_reward(self, value):
+        self.acc_reward = self.acc_reward + value
 
-    # Escolher uma ação (com exploração / explotação)
-    def choose_action(self, state, possible_actions):
-        if np.random.uniform() < self.epsilon:
-            # Exploração: escolhe uma ação aleatória
-            return random.choice(possible_actions)
+    def getHash(self, board):
+        boardHash = str(board.reshape(BOARD_COLS * BOARD_ROWS))
+        return boardHash
+
+    def chooseAction(self, positions, current_board):
+
+        estrategy =  np.random.uniform(0, 1)
+
+        if estrategy <= self.epsilon:
+            # take random action
+            idx = np.random.choice(len(positions))
+            action = positions[idx]
         else:
-            # Explotação: escolhe a melhor ação (com base nos valores Q)
-            q_values = [self.get_q_value(state, action) for action in possible_actions]
-            max_q = max(q_values)
-            if q_values.count(max_q) > 1:
-                # Se houver mais de uma ação com o mesmo valor máximo, escolhe aleatoriamente
-                best_actions = [i for i in range(len(possible_actions)) if q_values[i] == max_q]
-                i = random.choice(best_actions)
-            else:
-                i = q_values.index(max_q)
-            return possible_actions[i]
+            value_max = -999
+            for p in positions:
+                next_board = current_board.copy()
+                next_board[p] = self.player_symbol
+                next_boardHash = self.getHash(next_board)
+                value = 0 if self.q_table.get(next_boardHash) is None else self.q_table.get(next_boardHash)
+                # print("value", value)
+                if value >= value_max:
+                    value_max = value
+                    action = p
+        # print("{} takes action {}".format(self.name, action))
+        return action
 
+    # append a hash state
+    def addState(self, state):
+        self.states.append(state)
 
-    # Treinar o agente usando Q-learning
-    def train(self, env, num_episodes=1000):
+    # at the end of game, backpropagate and update states value
+    def feedReward(self, reward):
+        for st in reversed(self.states):
+            if self.q_table.get(st) is None:
+                self.q_table[st] = 0
+            self.q_table[st] += self.alpha * (self.gamma * reward - self.q_table[st])
+            reward = self.q_table[st]
 
-        for episode in range(num_episodes):
+        self.incremente_reward(reward)
 
-            if env.ended:
-                env.reset()
+    def reset(self):
+        self.states = []
 
-            state = env.get_state()
-            while not env.ended:
-                possible_actions = env.get_possible_actions()
-                action = self.choose_action(state, possible_actions)
-                env.step(action)
-                next_state = env.get_state()
-                reward = 0
-                if env.winner is not None:
-                    reward = 1 if env.winner == env.X else -1
+    def savePolicy(self):
+        fw = open('policy_agent', 'wb')
+        pickle.dump(self.q_table, fw)
+        fw.close()
 
-                q_values = [self.get_q_value(next_state, a) for a in env.get_possible_actions()]
-                if q_values:
-                    max_q = max(q_values)
-                else:
-                    max_q = 0
-
-                self.update_q_value(state, action, reward + self.gamma * max_q)
-                state = next_state
-
-        print("FIM DO TREINAMENTO")
-    def calculate_q_value(self, env):
-
-        state = env.get_state()
-        p_actions = env.get_possible_actions()
-
-        q_values = []
-        for action in p_actions:
-            q = self.get_q_value(state, action)
-            q_values.append(q)
-
-        if q_values:
-            max_q = max(q_values)
-        else:
-            max_q = 0
-
-        return max_q, q_values
-
+    def loadPolicy(self, file):
+        fr = open(file, 'rb')
+        self.states_value = pickle.load(fr)
+        fr.close()
