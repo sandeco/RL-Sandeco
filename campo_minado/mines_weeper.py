@@ -1,54 +1,71 @@
 import numpy as np
+import random
 
 class Minesweeper:
-    def __init__(self):
-        self.width = 10
-        self.height = 10
-        self.start_position = (0, 0)
-        self.current_position = self.start_position
-        self.end_position = (9, 9)
-        self.obstacles = [(2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (2, 7),
-                          (4, 2), (4, 7), (5, 2), (5, 7), (6, 2), (6, 7),
-                          (7, 2), (7, 3), (7, 4), (7, 5), (7, 6), (7, 7)]
-
-        # Cria uma matriz numpy para representar o labirinto
-        self.board = np.zeros((self.width, self.height), dtype=int)
-
-        # Define a posição de início e fim do labirinto
-        self.board[self.end_position[0], self.end_position[1]] = 1
+    def __init__(self, size=10, num_mines=10):
+        self.size = size
+        self.num_mines = num_mines
+        self.grid = np.zeros((size, size))
+        self.grid[0, 0] = 1  # start point
+        self.grid[size-1, size-1] = 2  # end point
+        self.generate_mines()
 
         # Define a posição dos obstáculos no labirinto
-        for obstacle in self.obstacles:
-            self.board[obstacle[0], obstacle[1]] = -1
+    def generate_mines(self):
+        positions = [(i, j) for i in range(self.size) for j in range(self.size)]
+        positions.remove((0, 0))
+        positions.remove((self.size - 1, self.size - 1))
+        mines = random.sample(positions, self.num_mines)
+        for mine in mines:
+            self.grid[mine[0], mine[1]] = -1
 
     def showBoard(self):
         # p1: x  p2: o
-        for i in range(0, self.width):
+        for i in range(0, self.size):
             print('-------------------------')
             aux = ""
-            for j in range(0, self.height):
-                aux = aux + " | " + str(self.board[i][j])
+            for j in range(0, self.size):
+                aux = aux + " | " + str(self.grid[i][j])
             print(aux)
         print('-------------------------')
 
+    def get_actions(self, state):
+        actions = []
 
-    def possible_actions(self, agent):
+        row_min = max(0, state[0] - 1)
+        row_max = min(self.size, state[0] + 2)
+        col_min = max(0, state[1] - 1)
+        col_max = min(self.size, state[1] + 2)
 
-        possible= []
+        range_row = range(row_min, row_max)
+        range_col = range(col_min, col_max)
 
-        x = agent.x
-        y = agent.y
+        for row in range_row:
+            for col in range_col:
+                if (row, col) == state:
+                    continue
+                actions.append((row, col))
 
-        if (x-1)>=0:
-            possible.append((x-1,y)) #left
-        if (y-1)>=0:
-            possible.append((x,y-1)) #top
-        if (x+1)<=self.width:
-            possible.append((x+1,y)) #right
-        if (y+1<=self.height):
-            possible.append((x,y+1)) #bottom
+        return actions
 
-        return possible
+    def is_terminal(self, state):
+
+        isTerminal = self.grid[state[0], state[1]] == 2
+
+        return isTerminal
+
+
+    def get_reward(self, state):
+        if self.grid[state[0], state[1]] == -1:  # step on a mine
+            return -100
+        elif self.grid[state[0], state[1]] == 2:  # reach the end
+            return 100
+        else:
+            return -1
+
+    def getHash(self):
+        boardHash = str(self.grid.reshape(self.size * self.size))
+        return boardHash
 
 
 
