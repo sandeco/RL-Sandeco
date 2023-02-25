@@ -192,7 +192,7 @@ while i < len(save_states):
             fw.close()
 
     # Define a variável com os dados a serem salvos
-    data_to_save = (best_hyperparams, best_reward, i )
+    data_to_save = (best_hyperparams, best_reward, i+1)
 
     # Salva os dados em um arquivo
     with open(filename, 'wb') as f:
