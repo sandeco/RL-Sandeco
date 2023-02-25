@@ -38,6 +38,12 @@ for hyperparams in itertools.product(learning_rates,
 
 
 filename = 'index_params.pkl'
+file_q_table = 'cartpolev1_agent'
+
+# Define o número de intervalos para cada valor contínuo
+num_bins = [10, 10, 10, 10]
+
+num_actions = 2
 
 # Verifica se já existe um arquivo com hiperparâmetros salvos
 if os.path.exists(filename):
@@ -56,6 +62,8 @@ if os.path.exists(filename):
         print("max_steps : {}".format(max_steps))
         print("INDEX {}: ".format(i))
 
+    with open(file_q_table, 'rb') as table:
+        q_table = pickle.load(table)
 
     print('Loaded saved hyperparameters from', filename)
 else:
@@ -63,6 +71,12 @@ else:
     best_hyperparams = None
     best_reward = -np.inf
     episode_rewards = []
+
+    # Define a forma da tabela Q-values
+    q_shape = tuple(num_bins + [num_actions])
+
+    # Cria uma tabela Q-values zerada
+    q_table = np.zeros(q_shape)
 
 
 
@@ -72,8 +86,6 @@ while i < len(save_states):
 
     learning_rate, discount_factor, epsilon, epsilon_min, epsilon_decay, n_episodes, max_steps = hyperparams
 
-    # Define o número de intervalos para cada valor contínuo
-    num_bins = [10, 10, 10, 10]
 
     # Define os limites de cada intervalo para cada valor contínuo
     bin_limits = [(-1.0, 1.0), (-2.0, 2.0), (-3.0, 3.0), (-4.0, 4.0)]
@@ -83,7 +95,7 @@ while i < len(save_states):
     q_shape = tuple(num_bins + [num_actions])
 
     # Cria uma tabela Q-values zerada
-    q_table = np.zeros(q_shape)
+    #q_table = np.zeros(q_shape)
 
     def discretize_state(state):
         # Discretiza cada valor contínuo usando intervalos fixos
