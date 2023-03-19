@@ -1,41 +1,25 @@
 import time
-import flappy_bird_gym
-from flappy_bird_gym.cli import random_agent_env
+import flappy_bird_gymnasium
+import gymnasium
 
-def random_agent_env():
-    env = flappy_bird_gym.make("FlappyBird-v0")
-    env.reset()
-    score = 0
-    while True:
-        env.render()
+env = gymnasium.make("FlappyBird-rgb-v0")
 
-        # Getting random action:
-        action = env.action_space.sample()
+obs, _ = env.reset()
+while True:
+    # Next action:
+    # (feed the observation to your agent here)
+    action = env.action_space.sample()
 
-        # Processing:
-        obs, reward, done, _ = env.step(action)
+    # Processing:
+    obs, reward, terminated, _, info = env.step(action)
 
-        score += reward
-        print(f"Obs: {obs}\n"
-              f"Action: {action}\n"
-              f"Score: {score}\n")
+    # Rendering the game:
+    # (remove this two lines during training)
+    env.render()
+    time.sleep(1 / 30)  # FPS
 
-        time.sleep(1 / 30)
+    # Checking if the player is still alive
+    if terminated:
+        break
 
-        if done:
-            env.render()
-            time.sleep(0.5)
-            break
-
-def main(mode):
-
-    if mode == "human":
-        flappy_bird_gym.original_game.main()
-    elif mode == "random":
-        random_agent_env()
-    else:
-        print("Invalid mode!")
-
-
-if __name__ == '__main__':
-    main("human")
+env.close()

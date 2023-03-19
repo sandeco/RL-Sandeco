@@ -1,12 +1,12 @@
 import cv2
 import numpy as np
-import flappy_bird_gym
+import flappy_bird_gymnasium
 
 
 
 from abstract.abstract_environment import AbstractEnvironment
 
-#https://github.com/Talendar/flappy-bird-gym
+# https://github.com/markub3327/flappy-bird-gymnasium
 class FlappyBirdEnv(AbstractEnvironment):
 
     def __init__(self, show=False):
