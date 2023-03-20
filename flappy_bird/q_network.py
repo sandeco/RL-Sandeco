@@ -42,8 +42,7 @@ class QNetwork:
         optimizer = Adam(learning_rate=self.lr)
 
         model.compile(optimizer=optimizer,
-                      loss='mse',
-                      )
+                      loss='mse')
 
         #print(model.summary())
 

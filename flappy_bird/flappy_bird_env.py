@@ -1,8 +1,7 @@
 import cv2
 import numpy as np
 import flappy_bird_gymnasium
-
-
+import gymnasium
 
 from abstract.abstract_environment import AbstractEnvironment
 
@@ -10,7 +9,7 @@ from abstract.abstract_environment import AbstractEnvironment
 class FlappyBirdEnv(AbstractEnvironment):
 
     def __init__(self, show=False):
-        self.env = flappy_bird_gym.make("FlappyBird-rgb-v0")
+        self.env = gymnasium.make("FlappyBird-rgb-v0")
         self.SHOW = show
 
         self.actions = np.array((0,1))
@@ -38,8 +37,8 @@ class FlappyBirdEnv(AbstractEnvironment):
             cv2.waitKey(1)
 
     def step(self, action):
-        obs, reward, done, info = self.env.step(action)
-        return obs, reward, done, info
+        obs, reward, done, _, info = self.env.step(action)
+        return obs, reward, done, _, info
 
     def render(self):
         self.env.render()
